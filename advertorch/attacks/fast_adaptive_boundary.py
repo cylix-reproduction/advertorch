@@ -12,6 +12,7 @@ from __future__ import unicode_literals
 
 import torch
 import time
+import collections.abc
 
 try:
     from torch import flip
@@ -19,12 +20,23 @@ except ImportError:
     from advertorch.utils import torch_flip as flip
 
 from advertorch.utils import replicate_input
-from advertorch.attacks.utils import zero_gradients
+# from advertorch.attacks.utils import zero_gradients
 
 from .base import Attack
 from .base import LabelMixin
 
 DEFAULT_EPS_DICT_BY_NORM = {'Linf': .3, 'L2': 1., 'L1': 5.0}
+
+
+def zero_gradients(x):
+    if isinstance(x, torch.Tensor):
+        if x.grad is not None:
+            x.grad.detach_()
+            x.grad.zero_()
+    elif isinstance(x, collections.abc.Iterable):
+        for elem in x:
+            zero_gradients(elem)
+
 
 
 class FABAttack(Attack, LabelMixin):
